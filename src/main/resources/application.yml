@@ -7,20 +7,41 @@ info:
   build:
     version: #application.version#
   app:
-    description: API para gerenciar campanhas de clubes
-
-
+    description: API para adesão a campanha de clubes
 
 spring:
     main:
+      allow-bean-definition-overriding: true
       banner-mode: "off"
     datasource:
-      url: jdbc:h2:mem:clubsupporterdb
-      driverClassName: org.h2.Driver
-      username: hpaiva
+      url: jdbc:postgresql://localhost:5432/campaigndb
+      driverClassName: org.postgresql.Driver
+      username: postgres
       password: hpaiva
     jpa:
-      database-platform: org.hibernate.dialect.H2Dialect
-    h2:
-      console:
-        enabled: true
+      database-platform: org.hibernate.dialect.PostgreSQL9Dialect
+      open-in-view: false
+      show-sql: true
+      properties:
+        hibernate:
+          jdbc:
+            lob:
+              non_contextual_creation: true
+
+rabbitmq:
+  queueName: campaign.queue
+  exchangeName: campaign-exchange
+  routingKey: campaign.routingkey
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: basic
+  hystrix:
+    enabled: true
+  url:
+    campaign: http://localhost:8089/campaigns
+    campaign-subscription: http://localhost:8089/campaign-subscription
