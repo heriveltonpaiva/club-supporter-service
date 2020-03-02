@@ -1,7 +1,5 @@
 package br.com.hpaiva.clubsupporterservice.campaign.subscription;
 
-import br.com.hpaiva.clubsupporterservice.campaign.CampaignClient;
-import br.com.hpaiva.clubsupporterservice.campaign.CampaignDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

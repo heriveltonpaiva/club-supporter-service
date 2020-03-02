@@ -2,7 +2,7 @@ package br.com.hpaiva.clubsupporterservice.clubsupporter;
 
 import lombok.*;
 
-import javax.persistence.Entity;
+import java.io.Serializable;
 import java.time.LocalDate;
 
 @Data
@@ -10,7 +10,7 @@ import java.time.LocalDate;
 @EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
-public class ClubSupporterDTO {
+public class ClubSupporterDTO implements Serializable {
 
     private Long id;
 

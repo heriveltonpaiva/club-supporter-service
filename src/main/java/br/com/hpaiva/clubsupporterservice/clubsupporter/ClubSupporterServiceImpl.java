@@ -4,7 +4,6 @@ import br.com.hpaiva.clubsupporterservice.campaign.CampaignClient;
 import br.com.hpaiva.clubsupporterservice.campaign.CampaignDTO;
 import br.com.hpaiva.clubsupporterservice.campaign.subscription.CampaignSubscriptionClient;
 import br.com.hpaiva.clubsupporterservice.campaign.subscription.CampaignSubscriptionDTO;
-import br.com.hpaiva.clubsupporterservice.team.Team;
 import br.com.hpaiva.clubsupporterservice.team.TeamService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,24 +26,24 @@ public class ClubSupporterServiceImpl implements ClubSupporterService {
     private ClubSupporterRepository repository;
 
     @Override
-    public List<CampaignDTO> createClubSupporter(ClubSupporterRequest req) {
+    public List<CampaignDTO> createClubSupporter(ClubSupporterDTO dto) {
 
-        final var allRegister = findClubSupporterByEmail(req.getEmail());
+        final var allRegister = findClubSupporterByEmail(dto.getEmail());
         final var clubSupporter = getActiveClubSupporter(allRegister);
 
         if(clubSupporter.isPresent()) {
-            log.warn("Você já tem um cadastro ativo! sócio torcedor de email={}",req.getEmail());
+            log.warn("Você já tem um cadastro ativo! sócio torcedor de email={}",dto.getEmail());
         }else{
 
-            final var team = teamService.findById(req.getIdHeartTeam());
+            final var team = teamService.findById(dto.getIdHeartTeam());
             if(team.isEmpty()) {
-                log.error("Não existe time do coração para o id informado idHeartTeam={}", req.getIdHeartTeam());
+                log.error("Não existe time do coração para o id informado idHeartTeam={}", dto.getIdHeartTeam());
                 return null;
             }
             final var newClubSupporter = ClubSupporter.builder()
-                    .name(req.getName())
-                    .email(req.getEmail())
-                    .birthDate(req.getBirthDate())
+                    .name(dto.getName())
+                    .email(dto.getEmail())
+                    .birthDate(dto.getBirthDate())
                     .team(team.get())
                     .active(true)
                     .build();
@@ -55,7 +54,7 @@ public class ClubSupporterServiceImpl implements ClubSupporterService {
         }
 
         if(isNotAssociatedCampaigns(clubSupporter.get().getId())){
-            log.warn("Não há campanhas associadas para o sócio torcedor de email: "+req.getEmail());
+            log.warn("Não há campanhas associadas para o sócio torcedor de email: "+dto.getEmail());
 
             //publish queue
 
@@ -82,6 +81,6 @@ public class ClubSupporterServiceImpl implements ClubSupporterService {
     }
 
     private boolean isNotAssociatedCampaigns(final Long idClubSupporter){
-        return !findSubscriptionsByClubSupporter(idClubSupporter).isEmpty();
+        return Optional.ofNullable(findSubscriptionsByClubSupporter(idClubSupporter)).isEmpty();
     }
 }

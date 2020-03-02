@@ -9,7 +9,7 @@ public interface ClubSupporterService {
 
     List<ClubSupporter> findClubSupporterByEmail(final String email);
 
-    List<CampaignDTO> createClubSupporter(final ClubSupporterRequest clubSupporterRequest);
+    List<CampaignDTO> createClubSupporter(final ClubSupporterDTO clubSupporterDTO);
 
     List<CampaignSubscriptionDTO> findSubscriptionsByClubSupporter(final Long idClubSupporter);
 

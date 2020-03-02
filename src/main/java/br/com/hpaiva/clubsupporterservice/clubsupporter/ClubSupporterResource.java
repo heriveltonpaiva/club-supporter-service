@@ -24,8 +24,8 @@ public class ClubSupporterResource {
     @ApiOperation(
             value = "Cadastra o sócio torcedor",
             notes = "Retorna as campanhas aderida pelo sócio torcedor.")
-    public ResponseEntity<List<CampaignDTO>> save(@RequestBody ClubSupporterRequest request){
-        return ResponseEntity.ok(service.createClubSupporter(request));
+    public ResponseEntity<List<CampaignDTO>> save(@RequestBody ClubSupporterDTO clubSupporterDTO){
+        return ResponseEntity.ok(service.createClubSupporter(clubSupporterDTO));
     }
 
 }
