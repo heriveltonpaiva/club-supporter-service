@@ -4,11 +4,13 @@ import br.com.hpaiva.clubsupporterservice.campaign.CampaignClient;
 import br.com.hpaiva.clubsupporterservice.campaign.CampaignDTO;
 import br.com.hpaiva.clubsupporterservice.campaign.subscription.CampaignSubscriptionClient;
 import br.com.hpaiva.clubsupporterservice.campaign.subscription.CampaignSubscriptionDTO;
+import br.com.hpaiva.clubsupporterservice.team.Team;
 import br.com.hpaiva.clubsupporterservice.team.TeamService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,7 +21,7 @@ public class ClubSupporterServiceImpl implements ClubSupporterService {
 
     private CampaignClient campaignClient;
 
-    private CampaignSubscriptionClient campaignSubscriptionClient;
+    private CampaignSubscriptionClient subscriptionClient;
 
     private TeamService teamService;
 
@@ -31,36 +33,48 @@ public class ClubSupporterServiceImpl implements ClubSupporterService {
         final var allRegister = findClubSupporterByEmail(dto.getEmail());
         final var clubSupporter = getActiveClubSupporter(allRegister);
 
-        if(clubSupporter.isPresent()) {
-            log.warn("Você já tem um cadastro ativo! sócio torcedor de email={}",dto.getEmail());
-        }else{
+        //para torcedores já cadastrados
+        if (clubSupporter.isPresent()) {
+            log.warn("Você já tem um cadastro ativo! sócio torcedor de email={}", dto.getEmail());
 
-            final var team = teamService.findById(dto.getIdHeartTeam());
-            if(team.isEmpty()) {
-                log.error("Não existe time do coração para o id informado idHeartTeam={}", dto.getIdHeartTeam());
-                return null;
+            if(findSubscriptionsByClubSupporter(clubSupporter.get().getId()).isEmpty()){
+                log.warn(("Não há campanhas associadas para o sócio torcedor de email: " + dto.getEmail()));
+
+                var campaigns = campaignClient.findCampaignsByIdHeartTeam(dto.getIdHeartTeam());
+
+                return campaigns;
             }
-            final var newClubSupporter = ClubSupporter.builder()
-                    .name(dto.getName())
-                    .email(dto.getEmail())
-                    .birthDate(dto.getBirthDate())
-                    .team(team.get())
-                    .active(true)
-                    .build();
-            repository.save(newClubSupporter);
-            log.info("Sócio torcedor cadastrado com sucesso.");
-            //publish queue
-            return null;
         }
 
-        if(isNotAssociatedCampaigns(clubSupporter.get().getId())){
-            log.warn("Não há campanhas associadas para o sócio torcedor de email: "+dto.getEmail());
+        //cadastramento do sócio torcedor
+        final var team = isTeamExist(dto.getIdHeartTeam());
+        final var newClubSupporter = createNewClubSupporter(dto, team);
+        log.info(newClubSupporter.toString());
 
-            //publish queue
+        //associar sócio as campanhas do time do coração
+        var campaigns = campaignClient.findCampaignsByIdHeartTeam(dto.getIdHeartTeam());
 
-           return findCampaignsByIdHeartTeam(clubSupporter.get().getTeam().getId());
-        }
         return null;
+}
+
+    private Team isTeamExist(Long idTeam) {
+        return teamService.findById(idTeam).orElseThrow(() -> new EntityNotFoundException("Não há time cadastrado para o idHeartTeam informado."));
+    }
+
+    private ClubSupporter createNewClubSupporter(ClubSupporterDTO dto, Team team) {
+
+        final var newClubSupporter = ClubSupporter.builder()
+                .name(dto.getName())
+                .email(dto.getEmail())
+                .birthDate(dto.getBirthDate())
+                .team(team)
+                .active(true)
+                .build();
+        repository.save(newClubSupporter);
+
+        log.info("Sócio torcedor cadastrado com sucesso.");
+
+        return newClubSupporter;
     }
 
     @Override
@@ -68,19 +82,12 @@ public class ClubSupporterServiceImpl implements ClubSupporterService {
         return repository.findByEmail(email);
     }
 
-    public List<CampaignDTO> findCampaignsByIdHeartTeam(Long idHeartTeam) {
-        return campaignClient.findCampaignsByIdHeartTeam(idHeartTeam);
-    }
-
-    public List<CampaignSubscriptionDTO> findSubscriptionsByClubSupporter(final Long idClubSupporter){
-        return campaignSubscriptionClient.findCampaignSubscriptionsByClubSupporter(idClubSupporter);
+    public List<CampaignSubscriptionDTO> findSubscriptionsByClubSupporter(final Long idClubSupporter) {
+        return subscriptionClient.findCampaignSubscriptionsByClubSupporter(idClubSupporter);
     }
 
     private Optional<ClubSupporter> getActiveClubSupporter(final List<ClubSupporter> clubSupporters) {
         return clubSupporters.stream().filter(x -> x.isActive()).findFirst();
     }
 
-    private boolean isNotAssociatedCampaigns(final Long idClubSupporter){
-        return Optional.ofNullable(findSubscriptionsByClubSupporter(idClubSupporter)).isEmpty();
-    }
 }

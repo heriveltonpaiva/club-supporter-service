@@ -1,8 +1,8 @@
 package br.com.hpaiva.clubsupporterservice.clubsupporter;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
-import java.io.Serializable;
 import java.time.LocalDate;
 
 @Data
@@ -10,8 +10,9 @@ import java.time.LocalDate;
 @EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
-public class ClubSupporterDTO implements Serializable {
+public class ClubSupporterDTO {
 
+    @JsonIgnore
     private Long id;
 
     private String name;
@@ -22,6 +23,7 @@ public class ClubSupporterDTO implements Serializable {
 
     private Long idHeartTeam;
 
-    private boolean active;
+    @JsonIgnore
+    private Boolean active;
 
 }

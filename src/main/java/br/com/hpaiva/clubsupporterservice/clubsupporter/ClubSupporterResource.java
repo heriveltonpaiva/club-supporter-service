@@ -4,7 +4,6 @@ import br.com.hpaiva.clubsupporterservice.campaign.CampaignDTO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.AllArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,8 +23,8 @@ public class ClubSupporterResource {
     @ApiOperation(
             value = "Cadastra o sócio torcedor",
             notes = "Retorna as campanhas aderida pelo sócio torcedor.")
-    public ResponseEntity<List<CampaignDTO>> save(@RequestBody ClubSupporterDTO clubSupporterDTO){
-        return ResponseEntity.ok(service.createClubSupporter(clubSupporterDTO));
+    public List<CampaignDTO> save(@RequestBody ClubSupporterDTO clubSupporterDTO){
+        return service.createClubSupporter(clubSupporterDTO);
     }
 
 }

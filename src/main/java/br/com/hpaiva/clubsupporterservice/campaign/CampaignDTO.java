@@ -1,27 +1,25 @@
 package br.com.hpaiva.clubsupporterservice.campaign;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class CampaignDTO implements Serializable {
+@Builder
+public class CampaignDTO {
 
     private Long id;
 
     private String name;
 
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    private LocalDateTime startEffectiveDate;
+    private LocalDate startEffectiveDate;
 
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    private LocalDateTime endEffectiveDate;
+    private LocalDate endEffectiveDate;
 
     private Long idHeartTeam;
 
