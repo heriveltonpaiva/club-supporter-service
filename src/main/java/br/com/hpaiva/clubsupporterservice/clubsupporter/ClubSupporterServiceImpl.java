@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,66 +29,75 @@ public class ClubSupporterServiceImpl implements ClubSupporterService {
     private ClubSupporterRepository repository;
 
     @Override
-    public List<CampaignDTO> createClubSupporter(ClubSupporterDTO dto) {
+    @Transactional
+    public List<CampaignDTO> createClubSupporter(final ClubSupporterRequest request) {
 
+        final var dto = toDto(request);
         final var allRegister = findClubSupporterByEmail(dto.getEmail());
         final var clubSupporter = getActiveClubSupporter(allRegister);
 
-        //para torcedores já cadastrados
         if (clubSupporter.isPresent()) {
             log.warn("Você já tem um cadastro ativo! sócio torcedor de email={}", dto.getEmail());
 
-            if(findSubscriptionsByClubSupporter(clubSupporter.get().getId()).isEmpty()){
+            if (findSubscriptionsByClubSupporter(clubSupporter.get().getId()).isEmpty()) {
                 log.warn(("Não há campanhas associadas para o sócio torcedor de email: " + dto.getEmail()));
-
-                var campaigns = campaignClient.findCampaignsByIdHeartTeam(dto.getIdHeartTeam());
-
-                return campaigns;
             }
+            return subscription(dto, clubSupporter.get().getId());
         }
 
-        //cadastramento do sócio torcedor
-        final var team = isTeamExist(dto.getIdHeartTeam());
-        final var newClubSupporter = createNewClubSupporter(dto, team);
-        log.info(newClubSupporter.toString());
-
-        //associar sócio as campanhas do time do coração
-        var campaigns = campaignClient.findCampaignsByIdHeartTeam(dto.getIdHeartTeam());
-
-        return null;
-}
-
-    private Team isTeamExist(Long idTeam) {
-        return teamService.findById(idTeam).orElseThrow(() -> new EntityNotFoundException("Não há time cadastrado para o idHeartTeam informado."));
+        final var newClubSupporter = createNewClubSupporter(dto);
+        return subscription(dto, newClubSupporter.getId());
     }
 
-    private ClubSupporter createNewClubSupporter(ClubSupporterDTO dto, Team team) {
+    @Override
+    public List<CampaignDTO> subscription(ClubSupporterDTO dto, Long clubSupporterId) {
+        dto.setId(clubSupporterId);
+        subscriptionClient.subscription(dto);
+        return campaignClient.findCampaignsByIdHeartTeam(dto.getIdHeartTeam());
+    }
+
+    @Override
+    public ClubSupporter createNewClubSupporter(final ClubSupporterDTO dto) {
+        final var team = isTeamExist(dto.getIdHeartTeam());
 
         final var newClubSupporter = ClubSupporter.builder()
                 .name(dto.getName())
                 .email(dto.getEmail())
                 .birthDate(dto.getBirthDate())
                 .team(team)
-                .active(true)
+                .active(Boolean.TRUE)
                 .build();
-        repository.save(newClubSupporter);
+        repository.saveAndFlush(newClubSupporter);
 
         log.info("Sócio torcedor cadastrado com sucesso.");
-
+        log.info(newClubSupporter.toString());
         return newClubSupporter;
     }
 
-    @Override
-    public List<ClubSupporter> findClubSupporterByEmail(String email) {
+    private Team isTeamExist(final Long idTeam) {
+        return teamService.findById(idTeam).orElseThrow(() ->
+                new EntityNotFoundException("Não há time cadastrado para o idHeartTeam informado."));
+    }
+
+    private List<ClubSupporter> findClubSupporterByEmail(final String email) {
         return repository.findByEmail(email);
     }
 
-    public List<CampaignSubscriptionDTO> findSubscriptionsByClubSupporter(final Long idClubSupporter) {
+    private List<CampaignSubscriptionDTO> findSubscriptionsByClubSupporter(final Long idClubSupporter) {
         return subscriptionClient.findCampaignSubscriptionsByClubSupporter(idClubSupporter);
     }
 
     private Optional<ClubSupporter> getActiveClubSupporter(final List<ClubSupporter> clubSupporters) {
         return clubSupporters.stream().filter(x -> x.isActive()).findFirst();
+    }
+
+    private ClubSupporterDTO toDto(final ClubSupporterRequest req) {
+        return ClubSupporterDTO.builder()
+                .name(req.getName())
+                .birthDate(req.getBirthDate())
+                .email(req.getEmail())
+                .idHeartTeam(req.getIdHeartTeam())
+                .build();
     }
 
 }
