@@ -77,7 +77,7 @@ Segue o curl executado para update, substitua {id_campaign} pelo id da campanha 
 Após execução as datas ficaram respectivamente `2021-01-02, 2021-01-03, 2021-01-04`, nesse momento as campanhas que sofreram
 atualizações foram postados na fila para notificar outras aplicações, no nosso cenário foi enviado a mensagem abaixo conforme log:
 
-`m=sendMessage message=Notification(data=CampaignDTO(id=138, name=Campanha do Flamengo, startEffectiveDate=2020-01-01, endEffectiveDate=2021-01-01, idHeartTeam=1))`
+`m=sendMessage message=Notification(data=CampaignDTO(id=138, name=Campanha do Flamengo, startEffectiveDate=2020-01-01, endEffectiveDate=2021-01-02, idHeartTeam=1))`
 
 `sendMessage message=Notification(data=CampaignDTO(id=141, name=Campanha do Flamengo 2, startEffectiveDate=2020-01-01, endEffectiveDate=2021-01-03, idHeartTeam=1))`
 
