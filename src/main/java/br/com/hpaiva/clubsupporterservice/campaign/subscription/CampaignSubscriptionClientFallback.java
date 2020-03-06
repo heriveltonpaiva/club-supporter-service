@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,14 +17,14 @@ public class CampaignSubscriptionClientFallback implements CampaignSubscriptionC
     private final Throwable error;
 
     @Override
-    public List<CampaignSubscriptionDTO> findCampaignSubscriptionsByClubSupporter(final Long idClubSupporter) {
+    public List<CampaignSubscriptionDTO> findCampaignSubscriptionsByClubSupporter(Long idClubSupporter) {
         log.error("m=findCampaignSubscriptionsByClubSupporter error={}"+getError());
-        return null;
+        return Collections.emptyList();
     }
 
     @Override
     public Optional<Void> subscription(ClubSupporterDTO clubSupporterDTO) {
-        log.error("m=subscription error={}"+getError());
+        log.error("m=subscription error={}"+getError().getMessage());
         return Optional.empty();
     }
 }

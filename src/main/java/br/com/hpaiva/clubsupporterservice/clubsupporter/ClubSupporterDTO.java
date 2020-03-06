@@ -1,6 +1,5 @@
 package br.com.hpaiva.clubsupporterservice.clubsupporter;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -22,6 +21,7 @@ public class ClubSupporterDTO {
 
     private Long idHeartTeam;
 
+    @EqualsAndHashCode.Exclude
     private Boolean active;
 
 }
